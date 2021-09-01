@@ -1,7 +1,7 @@
 import db from '../database' // @ts-ignore
 
 export type User = {
-  id: number | string;
+  id?: number | string;
   first_name: string;
   last_name: string;
   password: string;
@@ -39,8 +39,9 @@ export class UserStore {
   async create(u: User): Promise<User> {
     try {
       const conn = await db.connect()
-      const sql = 'INSERT INTO users (first_name, last_name, password) VALUES ($1, $2, $3) RETURNING *;'
-      const result = await conn.query(sql, [u.first_name, u.last_name, u.password])
+      const sql = `INSERT INTO users (${ u.id ? 'id, ' : '' }first_name, last_name, password) VALUES ($1, $2, $3 ${ u.id ? ', $4' : '' }) RETURNING *;`
+      const values = u.id ? [u.id, u.first_name, u.last_name, u.password] : [u.first_name, u.last_name, u.password]
+      const result = await conn.query(sql, values)
       const user = result.rows[0]
 
       conn.release()
@@ -48,6 +49,19 @@ export class UserStore {
       return user
     } catch (err) {
       throw new Error(`Could not add a new user. Error ${err}`)
+    }
+  } 
+
+  async delete(id: number | string): Promise<User> {
+    try {
+      const conn = await db.connect()
+      const sql = 'DELETE FROM users WHERE id=($1);'
+      const result = await conn.query(sql, [id])
+      conn.release()
+      
+      return result.rows[0]
+    } catch (err) {
+      throw new Error(`Could not delete user. Error ${err}`)
     }
   } 
 }
