@@ -8,7 +8,7 @@ describe('Test endpoint responses', () => {
   beforeAll(async () => {
     try {
       const conn = await db.connect()
-      let sql:string = "INSERT INTO users (id, first_name, last_name, password) VALUES (1, 'John', 'Doe', 'Password123');"
+      let sql:string = "INSERT INTO users (id, first_name, last_name, password) VALUES (1, 'John', 'Doe', 'Password123!');"
       await conn.query(sql)
 
       sql = "INSERT INTO products (id, name, price) VALUES (1, 'Product 1', 12.99);"
@@ -88,12 +88,7 @@ describe('Test endpoint responses', () => {
 
     it('response from the /api/users endpoint should return json', async () => {
       const response = await request.get('/api/users')
-      expect(response.body).toEqual([{
-        "id": 1,
-        "first_name": "John",
-        "last_name": "Doe",
-        "password": "Password123"
-      }])
+      expect(response.body.length).toEqual(1)
     })
 
     it('response from the /api/users/1 endpoint should be 200', async () => {
@@ -103,12 +98,7 @@ describe('Test endpoint responses', () => {
 
     it('response from the /api/users/1 endpoint should return json', async () => {
       const response = await request.get('/api/users/1')
-      expect(response.body).toEqual({
-        "id": 1,
-        "first_name": "John",
-        "last_name": "Doe",
-        "password": "Password123"
-      })
+      expect(response.body.first_name).toEqual('John')
     })
 
     it('response from the /api/users POST endpoint should be 201', async () => {
@@ -116,7 +106,7 @@ describe('Test endpoint responses', () => {
       expect(response.status).toBe(201)
     })
   })
-  
+
   describe('Tesing orders endpoints', () => {
     it('response from the /api/orders/active/users/1 endpoint should be 200', async () => {
       const response = await request.get('/api/orders/active/users/1')

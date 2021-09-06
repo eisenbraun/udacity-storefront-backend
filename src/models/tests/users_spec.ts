@@ -1,5 +1,14 @@
 import db from '../../database'
 import { UserStore } from '../user'
+import dotenv from 'dotenv'
+import bcrypt from 'bcrypt'
+
+dotenv.config()
+
+const {
+  BCRYPT_PASSWORD,
+  SALT_ROUNDS
+} = process.env
 
 const store = new UserStore()
 
@@ -27,37 +36,31 @@ describe('User Model', () => {
     expect(store.create).toBeDefined()
   })
 
-  it('create method should add a user', async () => {
+  it('create method should add a user and return first name', async () => {
+    const result = await store.create({
+      first_name: 'John',
+      last_name: 'Doe',
+      password: 'Password123!'
+    })
+    expect(result.first_name).toEqual('John')
+  })
+
+  it('create method should add a user and return hashed password', async () => {
     const result = await store.create({
       first_name: 'Jane',
       last_name: 'Doe',
-      password: 'password123'
+      password: 'Password123!'
     })
-    expect(result).toEqual({
-      id: 1,
-      first_name: 'Jane',
-      last_name: 'Doe',
-      password: 'password123'
-    })
+    expect(bcrypt.compareSync('Password123!'+BCRYPT_PASSWORD, result.password)).toBeTrue()
   })
 
   it('index method should return a list of users', async () => {
     const result = await store.index()
-    expect(result).toEqual([{
-      id: 1,
-      first_name: 'Jane',
-      last_name: 'Doe',
-      password: 'password123'
-    }])
+    expect(result.length).toEqual(2)
   })
 
   it('show method should return the correct user', async () => {
-    const result = await store.show(1)
-    expect(result).toEqual({
-      id: 1,
-      first_name: 'Jane',
-      last_name: 'Doe',
-      password: 'password123'
-    })
+    const result = await store.show(2)
+    expect(result.first_name).toEqual('Jane')
   })
 })
