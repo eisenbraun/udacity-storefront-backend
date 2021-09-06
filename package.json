@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node src/server.ts",
     "watch": "tsc-watch --esModuleInterop src/server.ts --outDir ./dist --onSuccess 'node ./dist/server.js'",
-    "test": "ENV=test db-migrate db:create storefront_test && db-migrate --env test up && jasmine-ts && db-migrate db:drop storefront_test",
+    "test": "ENV=test && db-migrate db:create storefront_test && db-migrate --env test up && jasmine-ts && db-migrate db:drop storefront_test",
     "tsc": "tsc",
     "drop": "ENV=test db-migrate db:drop storefront_test"
   },
@@ -30,7 +30,7 @@
   "devDependencies": {
     "@types/jasmine": "^3.9.0",
     "jasmine": "^3.9.0",
-    "jasmine-spec-reporter": "^6.0.0",
+    "jasmine-spec-reporter": "^7.0.0",
     "jasmine-ts": "^0.3.0",
     "supertest": "^6.1.6",
     "ts-node": "^9.1.1",
