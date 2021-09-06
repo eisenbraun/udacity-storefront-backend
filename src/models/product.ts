@@ -1,7 +1,7 @@
 import db from '../database' // @ts-ignore
 
 export type Product = {
-  id: number | string;
+  id?: number | string;
   name: string;
   price: number | string;
 }

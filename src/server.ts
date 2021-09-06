@@ -1,21 +1,39 @@
 import express, { Request, Response } from 'express'
 import bodyParser from 'body-parser'
+import winston, { format } from 'winston'
+import routes from './routes'
+
 import db from './database' // @ts-ignore
 
-const app: express.Application = express()
-const address: string = "0.0.0.0:3000"
+const logger = winston.createLogger({
+  level: 'info',
+  format: format.combine(
+    format.colorize(),
+    format.simple()
+  ),
+  transports: [
+    new winston.transports.Console(),
+    new winston.transports.File({ filename: 'combined.log' })
+  ]
+})
+
+const app = express()
+const port = 3000
 
 app.use(bodyParser.json())
 
-app.get('/', async function (req: Request, res: Response) {
-    try {
-        const conn = await db.connect()
-        res.send('DB connected')
-    } catch (err) {
-        res.send(`Error: ${err}`)
-    }
+app.use('/api', routes)
+
+app.listen(port, async () => {
+  logger.info(`server started at http://localhost:${port}`)
+
+  try {
+    const conn = await db.connect()
+    logger.info('DB connected')
+    conn.release()
+  } catch (err) {
+    logger.error(`Error: ${err}`)
+  }
 })
 
-app.listen(3000, function () {
-    console.log(`starting app on: ${address}`)
-})
+export default app

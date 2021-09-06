@@ -24,7 +24,7 @@ describe('Order Model', () => {
       sql = 'DELETE FROM users'
       await conn.query(sql)
     } catch (err) {
-      throw new Error(`Could not add a new user. Error ${err}`)
+      throw new Error(`Could not remove orders and users. Error ${err}`)
     }
   })
 
@@ -46,7 +46,7 @@ describe('Order Model', () => {
   })
 
   it('show method should return the correct order', async () => {
-    const result = await store.show(1)
+    const result = await store.show(1, 'active')
     expect(result).toEqual({
       id: 1,
       status: 'active',

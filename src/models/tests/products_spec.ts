@@ -1,8 +1,20 @@
+import db from '../../database'
 import { ProductStore } from '../product'
 
 const store = new ProductStore()
 
 describe('Product Model', () => {
+  afterAll(async () => {
+    try {
+      const conn = await db.connect()
+
+      const sql = 'DELETE FROM products'
+      await conn.query(sql)
+    } catch (err) {
+      throw new Error(`Could not remove products. Error ${err}`)
+    }
+  })
+
   it('should have an index method', () => {
     expect(store.index).toBeDefined()
   })

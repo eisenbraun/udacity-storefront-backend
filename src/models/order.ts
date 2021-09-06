@@ -7,11 +7,11 @@ export type Order = {
 }
 
 export class OrderStore {
-  async show(user_id: number | string): Promise<Order> {
+  async show(user_id: number | string, status: string): Promise<Order> {
     try {
       const conn = await db.connect()
-      const sql = "SELECT * FROM orders WHERE status = 'active' AND user_id = ($1);"
-      const result = await conn.query(sql, [user_id])
+      const sql = "SELECT * FROM orders WHERE status = ($2) AND user_id = ($1);"
+      const result = await conn.query(sql, [user_id, status])
       const order = result.rows[0]
       conn.release()
       

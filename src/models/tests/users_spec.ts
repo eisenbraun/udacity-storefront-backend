@@ -1,8 +1,20 @@
+import db from '../../database'
 import { UserStore } from '../user'
 
 const store = new UserStore()
 
 describe('User Model', () => {
+  afterAll(async () => {
+    try {
+      const conn = await db.connect()
+
+      const sql = 'DELETE FROM users'
+      await conn.query(sql)
+    } catch (err) {
+      throw new Error(`Could not remove users. Error ${err}`)
+    }
+  })
+
   it('should have an index method', () => {
     expect(store.index).toBeDefined()
   })
