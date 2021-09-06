@@ -1,34 +1,43 @@
+import db from '../../database'
 import { OrderStore } from '../order'
-import { UserStore } from '../user'
 
-const orderStore = new OrderStore()
-const userStore = new UserStore()
+const store = new OrderStore()
 
 describe('Order Model', () => {
   beforeAll(async () => {
-    await userStore.create({
-      id: 1,
-      first_name: 'John',
-      last_name: 'Doe',
-      password: 'password123'
-    })
+    try {
+      const conn = await db.connect()
+      const sql = "INSERT INTO users (id, first_name, last_name, password) VALUES (1, 'John', 'Doe', 'Password123');"
+      await conn.query(sql)
+    } catch (err) {
+      throw new Error(`Could not add a new user. Error ${err}`)
+    }
   })
 
   afterAll(async () => {
-    await orderStore.delete(1)
-    await userStore.delete(1)
+    try {
+      const conn = await db.connect()
+
+      let sql:string = 'DELETE FROM orders'
+      await conn.query(sql)
+      
+      sql = 'DELETE FROM users'
+      await conn.query(sql)
+    } catch (err) {
+      throw new Error(`Could not add a new user. Error ${err}`)
+    }
   })
 
   it('should have a show method', () => {
-    expect(orderStore.show).toBeDefined()
+    expect(store.show).toBeDefined()
   })
 
   it('should have a create method', () => {
-    expect(orderStore.create).toBeDefined()
+    expect(store.create).toBeDefined()
   })
 
   it('create method should add a order', async () => {
-    const result = await orderStore.create(1)
+    const result = await store.create(1)
     expect(result).toEqual({
       id: 1,
       status: 'active',
@@ -37,7 +46,7 @@ describe('Order Model', () => {
   })
 
   it('show method should return the correct order', async () => {
-    const result = await orderStore.show(1)
+    const result = await store.show(1)
     expect(result).toEqual({
       id: 1,
       status: 'active',

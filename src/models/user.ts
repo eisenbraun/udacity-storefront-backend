@@ -39,8 +39,8 @@ export class UserStore {
   async create(u: User): Promise<User> {
     try {
       const conn = await db.connect()
-      const sql = `INSERT INTO users (${ u.id ? 'id, ' : '' }first_name, last_name, password) VALUES ($1, $2, $3 ${ u.id ? ', $4' : '' }) RETURNING *;`
-      const values = u.id ? [u.id, u.first_name, u.last_name, u.password] : [u.first_name, u.last_name, u.password]
+      const sql = "INSERT INTO users (first_name, last_name, password) VALUES ($1, $2, $3) RETURNING *;"
+      const values =[u.first_name, u.last_name, u.password]
       const result = await conn.query(sql, values)
       const user = result.rows[0]
 
