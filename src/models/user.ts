@@ -2,6 +2,20 @@ import db from '../database' // @ts-ignore
 import dotenv from 'dotenv'
 import bcrypt from 'bcrypt'
 
+import winston, { format } from 'winston'
+
+const logger = winston.createLogger({
+  level: 'info',
+  format: format.combine(
+    format.colorize(),
+    format.simple()
+  ),
+  transports: [
+    new winston.transports.Console(),
+    new winston.transports.File({ filename: 'combined.log' })
+  ]
+})
+
 
 dotenv.config()
 
@@ -80,19 +94,21 @@ export class UserStore {
     }
   } 
 
-  async authenticate(id: string | number, password: string): Promise<User | null> {
+  async authenticate(u: User): Promise<User | null> {
     const conn = await db.connect()
-    const sql = 'SELECT password FROM users WHERE id=($1);'
-    const result = await conn.query(sql, [id])
+    const sql = 'SELECT password FROM users WHERE first_name = ($1) AND last_name = ($2);'
+    const result = await conn.query(sql, [u.first_name, u.last_name])
+    conn.release()
+
+   
 
     if(result.rows.length) {
       const user = result.rows[0]
-
-      if(bcrypt.compareSync(password + BCRYPT_PASSWORD, user.password)) {
+      if(bcrypt.compareSync(u.password + BCRYPT_PASSWORD, user.password)) {
         return user
-      }
+      } 
+      logger.info('password failed')
     }
-
     return null
   }
 }

@@ -12,7 +12,7 @@ const {
 
 const store = new UserStore()
 
-describe('User Model', () => {
+describe('Testing User Model', () => {
   afterAll(async () => {
     try {
       const conn = await db.connect()

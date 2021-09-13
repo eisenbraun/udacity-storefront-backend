@@ -1,15 +1,48 @@
 import db from '../../database'
+import dotenv from 'dotenv'
 import supertest from 'supertest'
 import app from '../../server'
+import bcrypt from 'bcrypt'
+
+import winston, { format } from 'winston'
+
+const logger = winston.createLogger({
+  level: 'info',
+  format: format.combine(
+    format.colorize(),
+    format.simple()
+  ),
+  transports: [
+    new winston.transports.Console(),
+    new winston.transports.File({ filename: 'combined.log' })
+  ]
+})
+
+
+dotenv.config()
+
+const {
+  BCRYPT_PASSWORD,
+  SALT_ROUNDS
+} = process.env
+
+
 
 const request = supertest(app)
+let token: string;
 
 describe('Test endpoint responses', () => {
   beforeAll(async () => {
     try {
       const conn = await db.connect()
-      let sql:string = "INSERT INTO users (id, first_name, last_name, password) VALUES (1, 'John', 'Doe', 'Password123!');"
-      await conn.query(sql)
+      const password = 'Password123!'
+
+      const hash = bcrypt.hashSync(
+        password + BCRYPT_PASSWORD, parseInt(SALT_ROUNDS as string)
+      )
+
+      let sql:string = "INSERT INTO users (id, first_name, last_name, password) VALUES (1, 'John', 'Doe', ($1));"
+      await conn.query(sql, [hash])
 
       sql = "INSERT INTO products (id, name, price) VALUES (1, 'Product 1', 12.99);"
       await conn.query(sql)
@@ -73,37 +106,110 @@ describe('Test endpoint responses', () => {
         "price": "12.99"
       })
     })
+
+    it('response from the /api/products POST endpoint should be 401', async () => {
+      const response = await request.post('/api/products')
+        .send({
+          name: 'Product 2',
+          price: 15.99
+        })
+      expect(response.status).toBe(401)
+    })  
   
+    it('response from the /api/users/authenticate POST endpoint should be 200', async () => {
+      const response = await request.post('/api/users/authenticate')
+        .send({
+          first_name: 'John',
+          last_name: 'Doe',
+          password: 'Password123!'
+        })
+      expect(response.status).toBe(200)
+      token = response.body as string
+    })
+
     it('response from the /api/products POST endpoint should be 201', async () => {
       const response = await request.post('/api/products')
+        .set('Content-type', 'application/json')
+        .set('authorization', token)
+        .send({
+          name: 'Product 2',
+          price: 15.99
+        })
       expect(response.status).toBe(201)
     })  
   })
 
   describe('Testing users endpoints', () => {
+    it('response from the /api/users endpoint should be 401', async () => {
+      const response = await request.get('/api/users')
+      expect(response.status).toBe(401)
+    })
+
+    it('response from the /api/users/1 endpoint should be 401', async () => {
+      const response = await request.get('/api/users/1')
+      expect(response.status).toBe(401)
+    })
+
+    it('response from the /api/users POST endpoint should be 401', async () => {
+      const response = await request.post('/api/users')
+        .send({
+          first_name: 'Dick',
+          last_name: 'Tracy',
+          password: 'Password123!'
+        })
+      expect(response.status).toBe(401)
+    })
+
+    it('response from the /api/users/authenticate POST endpoint should be 200', async () => {
+      const response = await request.post('/api/users/authenticate')
+        .send({
+          first_name: 'John',
+          last_name: 'Doe',
+          password: 'Password123!'
+        })
+      expect(response.status).toBe(200)
+      token = response.body as string
+    })
+
     it('response from the /api/users endpoint should be 200', async () => {
       const response = await request.get('/api/users')
+        .set('Content-type', 'application/json')
+        .set('authorization', token)
       expect(response.status).toBe(200)
     })
 
     it('response from the /api/users endpoint should return json', async () => {
       const response = await request.get('/api/users')
+        .set('Content-type', 'application/json')
+        .set('authorization', token)
       expect(response.body.length).toEqual(1)
+    })
+
+    it('response from the /api/users POST endpoint should be 201', async () => {
+      const response = await request.post('/api/users')
+        .set('Content-type', 'application/json')
+        .set('authorization', token)
+        .send({
+          first_name: 'Dick',
+          last_name: 'Tracy',
+          password: 'Password123!'
+        })
+        
+      expect(response.status).toBe(201)
     })
 
     it('response from the /api/users/1 endpoint should be 200', async () => {
       const response = await request.get('/api/users/1')
+        .set('Content-type', 'application/json')
+        .set('authorization', token)
       expect(response.status).toBe(200)
     })
 
     it('response from the /api/users/1 endpoint should return json', async () => {
       const response = await request.get('/api/users/1')
+        .set('Content-type', 'application/json')
+        .set('authorization', token)
       expect(response.body.first_name).toEqual('John')
-    })
-
-    it('response from the /api/users POST endpoint should be 201', async () => {
-      const response = await request.post('/api/users')
-      expect(response.status).toBe(201)
     })
   })
 
