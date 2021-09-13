@@ -1,4 +1,5 @@
 import db from '../database' // @ts-ignore
+import { QueryResult } from 'pg'
 
 export type Order = {
   id: number | string;
@@ -6,16 +7,27 @@ export type Order = {
   user_id: number | string;
 }
 
+export type Order_products = {
+  id: number | string;
+  quantity: number;
+  product_id: number;
+  order_id: number;
+}
+
 export class OrderStore {
-  async show(user_id: number | string, status: string): Promise<Order> {
+  async show(user_id: number | string, status: string) {
     try {
       const conn = await db.connect()
-      const sql = "SELECT * FROM orders WHERE status = ($2) AND user_id = ($1);"
+      let sql = "SELECT * FROM orders WHERE status = ($2) AND user_id = ($1);"
       const result = await conn.query(sql, [user_id, status])
       const order = result.rows[0]
+
+      sql = "SELECT name, price, quantity FROM order_products JOIN products ON products.id = order_products.product_id WHERE order_id = ($1)"
+      const products = await conn.query(sql, [order.id])
+  
       conn.release()
       
-      return order
+      return products.rows
     } catch (err) {
       throw new Error(`Could not find order. Error ${err}`)
     }
