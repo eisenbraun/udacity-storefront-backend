@@ -38,7 +38,7 @@
 
 ## Orders
 - GET: /api/orders/active/users/1 - Returns products of user's active order (Requires authentication)
-- POST: /api/orders/active/users/1/products/1 - Adds a new product to the user's active order (Requires authentication)
+- GET: /api/orders/active/users/1/products/1 - Adds a new product to the user's active order (Requires authentication)
 
 
 
