@@ -1,5 +1,6 @@
 import express, { Router, Request, Response } from 'express'
-import { OrderStore, Order } from '../../models/order'
+import { OrderStore } from '../../models/order'
+import { OrderProductStore } from '../../models/order_product'
 import dotenv from 'dotenv'
 import jwt, { Secret } from 'jsonwebtoken'
 
@@ -9,6 +10,7 @@ dotenv.config()
 const tokenSecret: Secret = process.env.TOKEN_SECRET as Secret
 
 const store = new OrderStore()
+const orderProductStore = new OrderProductStore()
 
 const orders = express.Router()
 
@@ -36,6 +38,15 @@ orders.get('/:status/users/:id', verifyAuthToken, async (req: Request, res: Resp
     res.status(400).json(error)
   }
   
+})
+
+orders.get('/:status/users/:user_id/products/:product_id', verifyAuthToken, async (req: Request, res: Response) => {
+  try {
+    const result = await orderProductStore.create(req.params.user_id, req.params.status, req.params.product_id)
+    res.status(200).json(result)
+  } catch (error) {
+    res.status(400).json(error)
+  }
 })
 
 export default orders

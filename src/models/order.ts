@@ -22,7 +22,7 @@ export class OrderStore {
       const result = await conn.query(sql, [user_id, status])
       const order = result.rows[0]
 
-      sql = "SELECT name, price, quantity FROM order_products JOIN products ON products.id = order_products.product_id WHERE order_id = ($1)"
+      sql = "SELECT name, price, count(*) AS quantity FROM order_products JOIN products ON products.id = order_products.product_id WHERE order_id = ($1) GROUP BY products.name, products.price;"
       const products = await conn.query(sql, [order.id])
   
       conn.release()

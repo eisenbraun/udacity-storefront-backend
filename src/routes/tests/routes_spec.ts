@@ -51,7 +51,7 @@ describe('Test endpoint responses', () => {
       await conn.query(sql)
 
       // create order_product
-      sql ="INSERT INTO order_products (quantity, product_id, order_id) VALUES (3, 1, 1);"
+      sql ="INSERT INTO order_products (product_id, order_id) VALUES (1, 1);"
       await conn.query(sql)
 
     } catch (err) {
@@ -63,17 +63,17 @@ describe('Test endpoint responses', () => {
     try {
       const conn = await db.connect()
 
-      let sql = 'DELETE FROM order_products'
-      await conn.query(sql)
+      // let sql = 'DELETE FROM order_products'
+      // await conn.query(sql)
 
-      sql = 'DELETE FROM orders'
-      await conn.query(sql)
+      // sql = 'DELETE FROM orders'
+      // await conn.query(sql)
       
-      sql = 'DELETE FROM products'
-      await conn.query(sql)
+      // sql = 'DELETE FROM products'
+      // await conn.query(sql)
 
-      sql = 'DELETE FROM users'
-      await conn.query(sql)
+      // sql = 'DELETE FROM users'
+      // await conn.query(sql)
 
     } catch (err) {
       throw new Error(`Could not delete tables. Error ${err}`)
@@ -246,6 +246,25 @@ describe('Test endpoint responses', () => {
         
     })
 
+    it('response from the /api/orders/active/users/1/products/1 endpoint should return json', async () => {
+      const response = await request.get('/api/orders/active/users/1/products/1')
+        .set('Content-type', 'application/json')
+        .set('authorization', token)
+      expect(response.status).toBe(200)
+    })
+
+
+    it('response from the /api/orders/active/users/1/products/1 endpoint should return json', async () => {
+      const response = await request.get('/api/orders/active/users/1/products/1')
+        .set('Content-type', 'application/json')
+        .set('authorization', token)
+      expect(response.body).toEqual({
+        id: 5,
+        order_id: 1,
+        product_id: 1
+      })
+    })
+
     it('response from the /api/orders/active/users/1 endpoint should return json', async () => {
       const response = await request.get('/api/orders/active/users/1')
         .set('Content-type', 'application/json')
@@ -253,7 +272,7 @@ describe('Test endpoint responses', () => {
       expect(response.body).toEqual([{
         name: 'Product 1',
         price: '12.99',
-        quantity: 3
+        quantity: '3'
       }])
     })
   })
